@@ -20,32 +20,36 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@87ceea60a25ef153a1a867dacdbb3e775efa1b08
 
-      - name: Extract Android project
+      - name: Extract project
         shell: bash
         run: |
           set -eux
           unzip -o PaPudian_Native_Android_v2.zip -d extracted
-          echo "===== Detected Android project files ====="
-          find extracted -maxdepth 6 \
-            \( -name settings.gradle -o -name settings.gradle.kts -o -name build.gradle -o -name build.gradle.kts \) \
-            -print
 
-      - name: Build debug APK
+      - name: Find Android root
         shell: bash
         run: |
           set -eux
+          echo "===== FILES ====="
+          find extracted -maxdepth 8 -print | head -200
 
-          ROOT=$(find extracted -maxdepth 6 \
+          ROOT=$(find extracted -maxdepth 8 \
             \( -name settings.gradle -o -name settings.gradle.kts \) \
             | head -n 1 | xargs dirname)
 
           if [ -z "$ROOT" ]; then
-            echo "ERROR: Android project root not found"
-            find extracted -maxdepth 8 -print | head -200
+            echo "ERROR: No Android project root found."
             exit 1
           fi
 
-          echo "PROJECT_ROOT=$ROOT"
+          echo "ROOT=$ROOT"
+          echo "$ROOT" > /tmp/android_root.txt
+
+      - name: Build APK
+        shell: bash
+        run: |
+          set -eux
+          ROOT=$(cat /tmp/android_root.txt)
           cd "$ROOT"
           gradle assembleDebug --stacktrace
 
