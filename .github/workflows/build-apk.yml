@@ -9,10 +9,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@836282e11ff5e8f849bdb942e818c6550e209c5b
         with:
           distribution: temurin
           java-version: "17"
@@ -22,16 +22,20 @@ jobs:
         run: |
           set -eux
           unzip -o PaPudian_Native_Android_v2.zip -d extracted
-          echo "Detected Android project files:"
-          find extracted -maxdepth 6 \( -name gradlew -o -name settings.gradle -o -name settings.gradle.kts -o -name build.gradle -o -name build.gradle.kts \) -print
+          echo "Detected Android project structure:"
+          find extracted -maxdepth 8 \
+            \( -name gradlew -o -name settings.gradle -o -name settings.gradle.kts -o -name build.gradle -o -name build.gradle.kts \) \
+            -print
 
       - name: Build debug APK
         shell: bash
         run: |
           set -eux
+
           GRADLEW_PATH=$(find extracted -type f -name gradlew | head -n 1)
           if [ -z "$GRADLEW_PATH" ]; then
-            echo "ERROR: gradlew not found inside extracted project"
+            echo "ERROR: gradlew not found in extracted project."
+            echo "Extracted tree:"
             find extracted -maxdepth 10 -print | head -n 200
             exit 1
           fi
@@ -44,7 +48,7 @@ jobs:
           ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@5c8fbbd9379e020d16b6e7d27b22de92919bf159
         with:
           name: PaPudian-debug-APK
           path: |
