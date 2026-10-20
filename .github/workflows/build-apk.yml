@@ -18,22 +18,30 @@ jobs:
           java-version: "17"
 
       - name: Unzip Android project
+        shell: bash
         run: |
           set -eux
           unzip -o PaPudian_Native_Android_v2.zip -d extracted
-          echo "Project files:"
-          find extracted -maxdepth 5 \( -name gradlew -o -name settings.gradle -o -name settings.gradle.kts -o -name build.gradle -o -name build.gradle.kts \) -print
+          echo "Detected Android project files:"
+          find extracted -maxdepth 6 \( -name gradlew -o -name settings.gradle -o -name settings.gradle.kts -o -name build.gradle -o -name build.gradle.kts \) -print
 
       - name: Build debug APK
         shell: bash
         run: |
           set -eux
-          PROJECT_ROOT=$(find extracted -type f -name gradlew | head -n 1 | xargs dirname)
+          GRADLEW_PATH=$(find extracted -type f -name gradlew | head -n 1)
+          if [ -z "$GRADLEW_PATH" ]; then
+            echo "ERROR: gradlew not found inside extracted project"
+            find extracted -maxdepth 10 -print | head -n 200
+            exit 1
+          fi
+
+          PROJECT_ROOT=$(dirname "$GRADLEW_PATH")
           echo "PROJECT_ROOT=$PROJECT_ROOT"
 
           cd "$PROJECT_ROOT"
           chmod +x ./gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
