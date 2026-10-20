@@ -12,21 +12,21 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Set up Java
-        uses: actions/setup-java@836282e11ff5e8f849bdb942e818c6550e209c5b
+        uses: actions/setup-java@d883318d88aefa04a461fda4dbe803a8de9a45fc
         with:
           distribution: temurin
           java-version: "17"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@8b0d2e90aba046a92a332fda045aeea736c962f3
+        uses: gradle/actions/setup-gradle@87ceea60a25ef153a1a867dacdbb3e775efa1b08
 
       - name: Extract Android project
         shell: bash
         run: |
           set -eux
           unzip -o PaPudian_Native_Android_v2.zip -d extracted
-          echo "===== Android project files ====="
-          find extracted -maxdepth 5 \
+          echo "===== Detected Android project files ====="
+          find extracted -maxdepth 6 \
             \( -name settings.gradle -o -name settings.gradle.kts -o -name build.gradle -o -name build.gradle.kts \) \
             -print
 
@@ -35,13 +35,13 @@ jobs:
         run: |
           set -eux
 
-          ROOT=$(find extracted -maxdepth 5 \
+          ROOT=$(find extracted -maxdepth 6 \
             \( -name settings.gradle -o -name settings.gradle.kts \) \
             | head -n 1 | xargs dirname)
 
           if [ -z "$ROOT" ]; then
             echo "ERROR: Android project root not found"
-            find extracted -maxdepth 6 -print | head -200
+            find extracted -maxdepth 8 -print | head -200
             exit 1
           fi
 
@@ -50,7 +50,7 @@ jobs:
           gradle assembleDebug --stacktrace
 
       - name: Upload APK
-        uses: actions/upload-artifact@5c8fbbd9379e020d16b6e7d27b22de92919bf159
+        uses: actions/upload-artifact@e4d736dabdf3acf0b1ebfc7f8319a5ae85f4d86a
         with:
           name: PaPudian-debug-APK
           path: |
